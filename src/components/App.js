@@ -32,6 +32,7 @@ function App() {
   const [isRegistered,setRegistered] = useState(false);
 
   useEffect(() => {
+    if (loggedIn) {
     Promise.all([
       api.getUserInfo(),
       api.getInitialCards()
@@ -41,37 +42,28 @@ function App() {
         setCards(initalСards);
       })
       .catch(err => console.error(err));
-  }, []);
-
+    }
+  }, [loggedIn]);
   useEffect(() => {
     checkToken()
-      .then((res) => {
-        if (res.ok) {
+      .then(() => {
           setLoggedIn(true);
           navigate("/", { replace: true });
-        } else {
-          return Promise.reject(`Ошибка: ${res.status}`);
-        }
       })
       .catch((err) => {
         console.log(err);
       });
   }, []);
-
   const navigate = useNavigate();
-
   function handleEditProfileClick () {
     setProfilePopupOpen(true);
   }
-
   function handleEditAvatarClick () {
     setEditAvatarPopupOpen(true);
   }
-
   function handleAddPlaceClick () {
     setAddPlacePopupOpen(true);
   }
-
   function handleCardDelete() {
     api.delCard(cardToDelete._id)
       .then((deletedCard) => {
@@ -80,16 +72,13 @@ function App() {
       .catch(err => console.error(err));
       closeAllPopups();
   }
-
   function handleConfirmCardDelete (card) {
     setDeleteCardPopupOpen(true);
     setCardToDelete(card);
   }
-
   function handleCardClick(card) {
     setSelectedCard(card);
   }
-
   function handleCardLike(card) {
     // Снова проверяем, есть ли уже лайк на этой карточке
     const isLiked = card.likes.some(i => i._id === currentUser._id);    
@@ -98,7 +87,6 @@ function App() {
       setCards((state) => state.map((c) => c._id === card._id ? newCard : c));
     }).catch(err => console.error(err));
   } 
-
   function handleUpdateUser(data) {
     api.editProfile(data).then(
       (userData) => {
@@ -107,7 +95,6 @@ function App() {
       }
     ).catch(err => console.error(err));
   }
-
   function handleUpdateAvatar(link) {
     api.updateAvatar(link).then(
         (userData) => {
@@ -116,7 +103,6 @@ function App() {
         }      
     ).catch(err => console.error(err));
   }
-
   function handleAddPlaceSubmit (data) {
     api.addCard(data)
       .then ((newCard) => {
@@ -125,7 +111,6 @@ function App() {
       })
       .catch(err => console.error(err));
   }
-
   function closeAllPopups () {
     setProfilePopupOpen(false);
     setEditAvatarPopupOpen(false);
@@ -135,14 +120,8 @@ function App() {
     setCardToDelete(null);
     setInfoToolTipPopupOpen(false);
   }
- 
   function handleSignUp({password,email}) {
     singUp(password,email)
-    .then((res) => {
-      if (res.ok) {
-        return res.json()}
-        return Promise.reject(`Ошибка: ${res.status}`);
-      })
       .then ((data) => {
         setRegistered(true);
         setInfoToolTipPopupOpen(true);
@@ -154,22 +133,19 @@ function App() {
       console.log(err);
     })
   }
-
-  function handleSignIn ({password,email}) {
-    
+  function handleSignIn ({password,email}) {  
     singIn(password,email)
-    .then((res) => {
-      if (res.ok) {
+      .then ((data)=> {
+        localStorage.setItem("token", data.token);
         setCurrentEmail(email);
-        return res.json()}
-        return Promise.reject(`Ошибка: ${res.status}`);
       })
-      .then ((data)=> localStorage.setItem("token", data.token))
       .then (()=> {
         navigate ('/', { replace: true });
         setLoggedIn(true);
       })
     .catch((err) => {
+      setRegistered(false);
+      setInfoToolTipPopupOpen(true);
       console.log(err);
     })
   }
@@ -178,7 +154,6 @@ function App() {
     setLoggedIn(false);
     navigate("/sign-in", { replace: true });
   };
-
   return (
     <CurrentUserContext.Provider value={currentUser}>
       <div className="page">
