@@ -30,6 +30,7 @@ function App() {
   const [currentEmail, setCurrentEmail] = useState(null);
   const [isInfoToolTipPopupOpen,setInfoToolTipPopupOpen] = useState(false);
   const [isRegistered,setRegistered] = useState(false);
+  const [infoMessage, setInfoMessage] = useState('');
 
   useEffect(() => {
     if (loggedIn) {
@@ -119,15 +120,18 @@ function App() {
     setSelectedCard(null);
     setCardToDelete(null);
     setInfoToolTipPopupOpen(false);
+    setInfoMessage('');
   }
   function handleSignUp({password,email}) {
     singUp(password,email)
       .then ((data) => {
+        setInfoMessage('Вы успешно зарегистировались!');
         setRegistered(true);
         setInfoToolTipPopupOpen(true);
         navigate ('/sign-in', { replace: true });
       })
     .catch((err) => {
+      setInfoMessage(`Что-то пошло не так!${err}`);
       setRegistered(false);
       setInfoToolTipPopupOpen(true);
       console.log(err);
@@ -140,10 +144,14 @@ function App() {
         setCurrentEmail(email);
       })
       .then (()=> {
+        setInfoMessage('Опять ты? Добро пожаловать!');
+        setRegistered(true);
+        setInfoToolTipPopupOpen(true);
         navigate ('/', { replace: true });
         setLoggedIn(true);
       })
     .catch((err) => {
+      setInfoMessage(err);
       setRegistered(false);
       setInfoToolTipPopupOpen(true);
       console.log(err);
@@ -182,7 +190,7 @@ function App() {
           <AddPlacePopup isOpen={isAddPlacePopupOpen} onClose={closeAllPopups} onAddPlace={handleAddPlaceSubmit} />
           <ConfirmPopup isOpen = {isDeleteCardPopupOpen} onClose = {closeAllPopups} onSubmit={handleCardDelete} /> 
           <ImagePopup card = {selectedCard} onClose = {closeAllPopups} > </ImagePopup>
-          <InfoTooltip isOpen={isInfoToolTipPopupOpen} onClose={closeAllPopups} isRegistered={isRegistered}></InfoTooltip>
+          <InfoTooltip isOpen={isInfoToolTipPopupOpen} onClose={closeAllPopups} isRegistered={isRegistered} infoMessage={infoMessage}></InfoTooltip>
         </div>
       </div>
     </CurrentUserContext.Provider>
